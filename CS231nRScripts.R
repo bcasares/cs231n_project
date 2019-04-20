@@ -1,3 +1,6 @@
+library(magrittr)
+library(readr)
+library(tidyverse)
 SFProperty <- readr::read_csv("SFProperty.csv")
 names(SFProperty)[1]<-"CRY"
 
@@ -79,7 +82,7 @@ View(SFProperty2017_Dwelling_Full_Ownership_Single_Unit)
 
 
 
-LAProp <- read_csv("LAProp.csv")
+LAProp <- readr::read_csv("LAProp.csv")
 
 View(LAProp)
 LAProp_Residential <- LAProp %>%
@@ -110,6 +113,37 @@ LAProp_Residential_2016 <- LAProp_Residential %>%
 LAProp_Residential_2017 <- LAProp_Residential %>%
   filter(ImpBaseYear>2017)
 
+LAProp_Residential_2017_Only_Houses <- LAProp_Residential_2017 %>%  # Removed empty lands and houses with more than 2 units (more than 1 unit assessment is tricky)
+  filter(ImprovementValue>0 & Units==1 & PropertyType=="SFR") 
+
+dim(LAProp_Residential_2017_Only_Houses)  # [1] 35456    51 Dimension of our new dataset after removing empty lands
+
+# Now, I see zip codes like 90222-1823, but we need to standardize it to 5 digit to feed into regression models. Otherwise, it will treat the same zip code
+# as different zip codes. Below function removes anyting after -
+
+LAProp_Residential_2017_Only_Houses$ZIPcode <- gsub(LAProp_Residential_2017_Only_Houses$ZIPcode, pattern="-.*", replacement = "")
+
+
+range(LAProp_Residential_2017_Only_Houses$TotalValue)
+
+
+d <- density(LAProp_Residential_2017_Only_Houses$TotalValue)
+plot(d)
+
+hist(log(LAProp_Residential_2017_Only_Houses$TotalValue), 
+     main="LA House Values", 
+     xlab="House Values", 
+     border="red", 
+     col="green",
+     xlim=c(11.7,16.5),
+     las=1, 
+     breaks=50)
+
+
+# Around  80% of house values are less or equal to 1M
+
+
+
 LAProp_Residential_2018 <- LAProp_Residential %>%
   filter(ImpBaseYear>2018)
 
@@ -131,3 +165,43 @@ Check <- LAProp_Residential_2017 %>%
 
 dim(Check)
 
+LAProp_Residential_2017_Only_Houses %>%
+  filter(TotalValue<1000000)
+
+dim(LAProp_Residential_2017)
+LAProp_Residential_2017 %>%
+  filter(TotalValue<1000000)
+
+# Getting variables from the LAProp_Residential_2017_Only_Houses data
+LAProp_Residential_2017_Only_Houses_Regres <- LAProp_Residential_2017_Only_Houses[, c(1,5, 12, 13, 14, 16, 17, 18, 19, 34)] 
+dim(LAProp_Residential_2017_Only_Houses_Regres)
+LAProp_Residential_2017_Only_Houses_Regres$ZIPcode <- as.factor(LAProp_Residential_2017_Only_Houses_Regres$ZIPcode)
+LAProp_Residential_2017_Only_Houses_Regres$TaxRateArea <- as.numeric(LAProp_Residential_2017_Only_Houses_Regres$TaxRateArea)
+LAProp_Residential_2017_Only_Houses_Regres$SpecificUseDetail1 <- as.factor(LAProp_Residential_2017_Only_Houses_Regres$SpecificUseDetail1)
+LAProp_Residential_2017_Only_Houses_Regres$SpecificUseDetail2 <- as.factor(LAProp_Residential_2017_Only_Houses_Regres$SpecificUseDetail2)
+
+
+library(gbm)
+
+set.seed(1)
+trainid <- sample(1:nrow(LAProp_Residential_2017_Only_Houses_Regres), nrow(LAProp_Residential_2017_Only_Houses_Regres)*0.8)
+train <- LAProp_Residential_2017_Only_Houses_Regres[trainid,]
+test <- LAProp_Residential_2017_Only_Houses_Regres[-trainid,]
+
+boosting_LA <- gbm(log(TotalValue)~.,data = train, distribution = "gaussian",n.trees =
+                       3000, interaction.depth = 4, shrinkage=0.1)
+
+summary(boosting_LA)
+
+training_prediction=predict(boosting_LA, train, n.trees = 2000)
+test_prediction=predict(boosting_LA, test, n.trees = 2000)
+training_error = mean((training_prediction-log(train$TotalValue))^2)
+test_error = mean((test_prediction-log(test$TotalValue))^2)
+
+#Gradient Boosted Regression gave below mse results after log-transformation of house assessment values, I have some suspicion in the results
+# training_error
+#[1] 0.03468971
+# test_error
+#[1] 0.04150031
+
+                                                                                
