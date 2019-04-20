@@ -181,6 +181,11 @@ LAProp_Residential_2017_Only_Houses_Regres$SpecificUseDetail1 <- as.factor(LAPro
 LAProp_Residential_2017_Only_Houses_Regres$SpecificUseDetail2 <- as.factor(LAProp_Residential_2017_Only_Houses_Regres$SpecificUseDetail2)
 
 
+write_csv(LAProp_Residential_2017_Only_Houses_Regres, "LAProp_Residential_2017_Only_Houses_Regres.csv") 
+write_csv(LAProp_Residential_2017_Only_Houses, "LAProp_Residential_2017_Only_Houses.csv") 
+
+# LAProp_Residential_2017_Only_Houses
+
 library(gbm)
 
 set.seed(1)
@@ -193,8 +198,8 @@ boosting_LA <- gbm(log(TotalValue)~.,data = train, distribution = "gaussian",n.t
 
 summary(boosting_LA)
 
-training_prediction=predict(boosting_LA, train, n.trees = 2000)
-test_prediction=predict(boosting_LA, test, n.trees = 2000)
+training_prediction=predict(boosting_LA, train, n.trees = 3000)
+test_prediction=predict(boosting_LA, test, n.trees = 3000)
 training_error = mean((training_prediction-log(train$TotalValue))^2)
 test_error = mean((test_prediction-log(test$TotalValue))^2)
 
