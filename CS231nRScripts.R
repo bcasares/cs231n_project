@@ -130,12 +130,12 @@ range(LAProp_Residential_2017_Only_Houses$TotalValue)
 d <- density(LAProp_Residential_2017_Only_Houses$TotalValue)
 plot(d)
 
-hist(log(LAProp_Residential_2017_Only_Houses$TotalValue), 
+hist(log(log(LAProp_Residential_2017_Only_Houses$TotalValue)), 
      main="LA House Values", 
      xlab="House Values", 
      border="red", 
      col="green",
-     xlim=c(11.7,16.5),
+     xlim=c(2.3,2.85),
      las=1, 
      breaks=50)
 
@@ -209,4 +209,21 @@ test_error = mean((test_prediction-log(test$TotalValue))^2)
 # test_error
 #[1] 0.04150031
 
+experiment <- LAProp_Residential_2017_Only_Houses_Regres %>%
+  filter(TotalValue > 150000 & TotalValue < 1500000)
+
+set.seed(1)
+trainid <- sample(1:nrow(experiment), nrow(experiment)*0.8)
+train <- experiment[trainid,]
+test <- experiment[-trainid,]
+
+boosting_experiment <- gbm(log(TotalValue)~.,data = train, distribution = "gaussian",n.trees =
+                     3000, interaction.depth = 4, shrinkage=0.1)
+
+summary(boosting_experiment)
+
+training_prediction_experiment = predict(boosting_experiment, train, n.trees = 3000)
+test_prediction_experiment = predict(boosting_experiment, test, n.trees = 3000)
+training_error_experiment = mean((training_prediction_experiment-log(train$TotalValue))^2)
+test_error_experiment = mean((test_prediction_experiment-log(test$TotalValue))^2)
                                                                                 
