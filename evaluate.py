@@ -11,13 +11,6 @@ import utils
 import model.net as net
 import model.data_loader as data_loader
 
-parser = argparse.ArgumentParser()
-parser.add_argument('--data_dir', default='data/64x64_SIGNS', help="Directory containing the dataset")
-parser.add_argument('--model_dir', default='experiments/base_model', help="Directory containing params.json")
-parser.add_argument('--restore_file', default='best', help="name of the file in --model_dir \
-                     containing weights to load")
-
-
 def evaluate(model, loss_fn, dataloader, metrics, params):
     """Evaluate the model on `num_steps` batches.
 
@@ -65,13 +58,13 @@ def evaluate(model, loss_fn, dataloader, metrics, params):
     logging.info("- Eval metrics : " + metrics_string)
     return metrics_mean
 
-
-if __name__ == '__main__':
+def runEvaluate(model_dir, data_dir, restore_file):
     """
         Evaluate the model on the test set.
     """
+
     # Load the parameters
-    args = parser.parse_args()
+
     json_path = os.path.join(args.model_dir, 'params.json')
     assert os.path.isfile(json_path), "No json configuration file found at {}".format(json_path)
     params = utils.Params(json_path)
@@ -110,3 +103,16 @@ if __name__ == '__main__':
     test_metrics = evaluate(model, loss_fn, test_dl, metrics, params)
     save_path = os.path.join(args.model_dir, "metrics_test_{}.json".format(args.restore_file))
     utils.save_dict_to_json(test_metrics, save_path)
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--data_dir', default='data/HOUSES_SPLIT_64_64', help="Directory containing the dataset")
+    parser.add_argument('--model_dir', default='experiments/base_model', help="Directory containing params.json")
+    parser.add_argument('--restore_file', default='best', help="name of the file in --model_dir \
+                         containing weights to load")
+
+    args = parser.parse_args()
+
+    runEvaluate(model_dir=args.model_dir, data_dir=args.data_dir, restore_file=args.restore_file)
+
