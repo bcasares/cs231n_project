@@ -33,7 +33,7 @@ class Net(nn.Module):
         """
         super(Net, self).__init__()
         self.num_channels = params.num_channels
-        
+
         # each of the convolution layers below have the arguments (input_channels, output_channels, filter_size,
         # stride, padding). We also include batch normalisation layers that help stabilise training.
         # For more details on how to use these layers, check out the documentation.
@@ -47,7 +47,7 @@ class Net(nn.Module):
         # 2 fully connected layers to transform the output of the convolution layers to the final output
         self.fc1 = nn.Linear(8*8*self.num_channels*4, self.num_channels*4)
         self.fcbn1 = nn.BatchNorm1d(self.num_channels*4)
-        self.fc2 = nn.Linear(self.num_channels*4, 6)       
+        self.fc2 = nn.Linear(self.num_channels*4, 6)
         self.dropout_rate = params.dropout_rate
 
     def forward(self, s):
@@ -75,7 +75,7 @@ class Net(nn.Module):
         s = s.view(-1, 8*8*self.num_channels*4)             # batch_size x 8*8*num_channels*4
 
         # apply 2 fully connected layers with dropout
-        s = F.dropout(F.relu(self.fcbn1(self.fc1(s))), 
+        s = F.dropout(F.relu(self.fcbn1(self.fc1(s))),
             p=self.dropout_rate, training=self.training)    # batch_size x self.num_channels*4
         s = self.fc2(s)                                     # batch_size x 6
 
@@ -98,8 +98,10 @@ def loss_fn(outputs, labels):
     Note: you may use a standard loss function from http://pytorch.org/docs/master/nn.html#loss-functions. This example
           demonstrates how you can easily define a custom loss function.
     """
-    num_examples = outputs.size()[0]
-    return -torch.sum(outputs[range(num_examples), labels])/num_examples
+    # num_examples = outputs.size()[0]
+    # return -torch.sum(outputs[range(num_examples), labels])/num_examples
+    loss = F.cross_entropy(outputs, labels)
+    return loss
 
 
 def accuracy(outputs, labels):
