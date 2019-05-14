@@ -17,7 +17,7 @@ from evaluate import evaluate
 
 from tensorboardX import SummaryWriter
 
-def train(model, optimizer, loss_fn, dataloader, metrics, params, writer=None):
+def train(model, optimizer, loss_fn, dataloader, metrics, params, writer=None, curr_iter=0):
     """Train the model on `num_steps` batches
 
     Args:
@@ -71,7 +71,7 @@ def train(model, optimizer, loss_fn, dataloader, metrics, params, writer=None):
 
                 if writer:
                     for key, value in summary_batch.items():
-                        writer.add_scalar('train/' + key, value , i)
+                        writer.add_scalar('train/' + key, value , curr_iter + i)
 
                 summ.append(summary_batch)
 
@@ -115,7 +115,7 @@ def train_and_evaluate(model, train_dataloader, val_dataloader, optimizer, loss_
         logging.info("Epoch {}/{}".format(epoch + 1, params.num_epochs))
 
         # compute number of batches in one epoch (one full pass over the training set)
-        train(model, optimizer, loss_fn, train_dataloader, metrics, params, writer)
+        train(model, optimizer, loss_fn, train_dataloader, metrics, params, writer, epoch*params.batch_size)
 
         # Evaluate for one epoch on validation set
         val_metrics = evaluate(model, loss_fn, val_dataloader, metrics, params)
