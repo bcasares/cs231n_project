@@ -72,6 +72,7 @@ def train(model, optimizer, loss_fn, dataloader, metrics, params, writer=None, c
                 if writer:
                     for key, value in summary_batch.items():
                         writer.add_scalar('train/' + key, value , curr_iter + i)
+                        # writer.add_scalar('train/' + key, value , count)
 
                 summ.append(summary_batch)
 
@@ -115,6 +116,9 @@ def train_and_evaluate(model, train_dataloader, val_dataloader, optimizer, loss_
         logging.info("Epoch {}/{}".format(epoch + 1, params.num_epochs))
 
         # compute number of batches in one epoch (one full pass over the training set)
+        print(params.batch_size)
+        print(params.batch_size)
+
         train(model, optimizer, loss_fn, train_dataloader, metrics, params, writer, epoch*params.batch_size)
 
         # Evaluate for one epoch on validation set
