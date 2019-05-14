@@ -15,8 +15,9 @@ import model.net as net
 import model.data_loader as data_loader
 from evaluate import evaluate
 
+from tensorboardX import SummaryWriter
 
-def train(model, optimizer, loss_fn, dataloader, metrics, params):
+def train(model, optimizer, loss_fn, dataloader, metrics, params, writer=None):
     """Train the model on `num_steps` batches
 
     Args:
@@ -68,6 +69,10 @@ def train(model, optimizer, loss_fn, dataloader, metrics, params):
                 # summary_batch['loss'] = loss.data[0]
                 summary_batch['loss'] = loss.data.item()
 
+                if writer:
+                    for key, value in summary_batch.items():
+                        writer.add_scalar('train/' + key, value , i)
+
                 summ.append(summary_batch)
 
             # update the average loss
@@ -83,7 +88,7 @@ def train(model, optimizer, loss_fn, dataloader, metrics, params):
 
 
 def train_and_evaluate(model, train_dataloader, val_dataloader, optimizer, loss_fn, metrics, params, model_dir,
-                       restore_file=None):
+                       restore_file=None, writer=None):
     """Train the model and evaluate every epoch.
 
     Args:
@@ -110,7 +115,7 @@ def train_and_evaluate(model, train_dataloader, val_dataloader, optimizer, loss_
         logging.info("Epoch {}/{}".format(epoch + 1, params.num_epochs))
 
         # compute number of batches in one epoch (one full pass over the training set)
-        train(model, optimizer, loss_fn, train_dataloader, metrics, params)
+        train(model, optimizer, loss_fn, train_dataloader, metrics, params, writer)
 
         # Evaluate for one epoch on validation set
         val_metrics = evaluate(model, loss_fn, val_dataloader, metrics, params)
@@ -145,6 +150,9 @@ def runTraining(model_dir, data_dir, restore_file):
     assert os.path.isfile(json_path), "No json configuration file found at {}".format(json_path)
     params = utils.Params(json_path)
 
+    # Adding tensorboard
+    writer = SummaryWriter()
+
     # use GPU if available
     params.cuda = torch.cuda.is_available()
 
@@ -176,8 +184,8 @@ def runTraining(model_dir, data_dir, restore_file):
     # Train the model
     logging.info("Starting training for {} epoch(s)".format(params.num_epochs))
     train_and_evaluate(model, train_dl, val_dl, optimizer, loss_fn, metrics, params, model_dir,
-                       restore_file)
-
+                       restore_file, writer)
+    writer.close()
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
