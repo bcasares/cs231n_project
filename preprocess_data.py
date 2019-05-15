@@ -109,23 +109,26 @@ def getImagesInFolder(data, folder_name, source_location="data/HOUSES", images_f
 		shutil.copy(src_file,destination_directory)
 
 
-def getImagesInFolderAll(data_list, data_names):
+def getImagesInFolderAll(data_list, data_names, source_location="data/HOUSES", images_folder="data/HOUSES_SPLIT"):
 	for data, data_name in zip(data_list, data_names):
-		getImagesInFolder(data=data, folder_name=data_name)
+		getImagesInFolder(data=data, folder_name=data_name, source_location=source_location, images_folder=images_folder)
 
 def filterData(data, image_names, row_id):
 	data[row_id] = data[row_id].apply(lambda x: str(x))
 	data = data[data[row_id].isin(image_names)]
 	return data
 
-def preprocessData(data):
+def preprocessData(data, num_images=None, source_location="data/HOUSES", images_folder="data/HOUSES_SPLIT"):
 	# Filter, split, and get images in folder
 	image_names = getImageName()
 	data = filterData(data, image_names, row_id="rowID")
+	if num_images:
+		data = data.head(num_images)
+		image_names = image_names[:num_images]
 	train, val, test = splitTrainTestVal(data, image_names)
-	getImagesInFolderAll(data_list=[train, val, test], data_names=["train", "val", "test"])
+	getImagesInFolderAll(data_list=[train, val, test], data_names=["train", "val", "test"],
+		source_location=source_location, images_folder=images_folder)
 	return train, val, test
-
 
 
 
