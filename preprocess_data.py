@@ -78,7 +78,7 @@ def getImageName(directory="data/HOUSES"):
 	return images
 
 
-def splitTrainTestVal(data, image_names):
+def splitTrainTestVal(data, image_names, save=False):
 	image_names.sort()
 	random.seed(231)
 	random.shuffle(image_names)
@@ -88,6 +88,10 @@ def splitTrainTestVal(data, image_names):
 	train = data[:split_1]
 	val = data[split_1:split_2]
 	test = data[split_2:]
+	if save:
+		train.to_csv("data/CSVFiles/train.csv")
+		val.to_csv("data/CSVFiles/val.csv")
+		test.to_csv("data/CSVFiles/test.csv")
 	return train, val, test
 
 
@@ -125,7 +129,7 @@ def preprocessData(data, num_images=None, source_location="data/HOUSES", images_
 	if num_images:
 		data = data.head(num_images)
 		image_names = image_names[:num_images]
-	train, val, test = splitTrainTestVal(data, image_names)
+	train, val, test = splitTrainTestVal(data, image_names, save=False)
 	getImagesInFolderAll(data_list=[train, val, test], data_names=["train", "val", "test"],
 		source_location=source_location, images_folder=images_folder)
 	return train, val, test
