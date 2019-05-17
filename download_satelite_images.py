@@ -12,7 +12,9 @@ class GoogleMapDownloader:
         a longitude, latitude and zoom level
     """
 
-    def __init__(self, lat, lng, size=600, zoom=20, type_="satellite", google_key="AIzaSyA7kqDO_6lbirEKKqDHcCIl05-AR0t9Yqg"):
+    # AIzaSyDl3mMCFcSapH5j0TeAM97Ua_noRLiZKJY # project key
+    # AIzaSyA7kqDO_6lbirEKKqDHcCIl05-AR0t9Yqg # hw key
+    def __init__(self, lat, lng, size=600, zoom=20, type_="satellite", google_key="AIzaSyDl3mMCFcSapH5j0TeAM97Ua_noRLiZKJY"):
         """
             GoogleMapDownloader Constructor
             Args:
@@ -120,7 +122,8 @@ def getSatelliteImageGoogleMap(data,location_name,row_name):
             # Get the high resolution image
             img = gmd.generateImage()
             img.save(dir_path + ".jpg")
-        except:
+        except Exception as e:
+            print(e)
             # print(dir_path)
             # print("Could not generate the image - try adjusting the zoom level and checking your coordinates")
             pass
