@@ -108,10 +108,10 @@ class HOUSEDataset(Dataset):
         vec  = self.info_vector.iloc[idx].to_list()
         label = self.labels[idx]
 
-        return image, image2, np.asarray(list(map(float,vec))), label
+        return [image, image2, np.asarray(list(map(float,vec)))], label
 
 
-def fetch_dataloader(types, data_dir, data_dir2, params):
+def fetch_dataloader(types, data_dir, params):
     """
     Fetches the DataLoader object for each type in types from data_dir.
 
@@ -124,6 +124,8 @@ def fetch_dataloader(types, data_dir, data_dir2, params):
         data: (dict) contains the DataLoader object for each type in types
     """
     dataloaders = {}
+
+    data_dir, data_dir2 = data_dir
 
     for split in ['train', 'val', 'test']:
         if split in types:

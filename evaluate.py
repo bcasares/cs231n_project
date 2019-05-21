@@ -34,9 +34,19 @@ def evaluate(model, loss_fn, dataloader, metrics, params):
 
         # move to GPU if available
         if params.cuda:
-            data_batch, labels_batch = data_batch.cuda(non_blocking=True), labels_batch.cuda(non_blocking=True)
-        # fetch the next evaluation batch
-        data_batch, labels_batch = Variable(data_batch), Variable(labels_batch)
+            device = torch.device('cuda')
+        else:
+            device = torch.device('cpu')
+
+        # convert to torch Variables
+        dtype = torch.float32 # we will be using float throughout this tutorial
+        x, x2, x3 = data_batch
+        model.train()  # put model to training mode
+        x = x.to(device=device, dtype=dtype)  # move to device, e.g. GPU
+        x2 = x2.to(device=device, dtype=dtype)
+        x3 = x3.to(device=device, dtype=dtype)
+        labels_batch = labels_batch.to(device=device, dtype=torch.float)
+        data_batch = (x, x2, x3)
 
         # compute model output
         output_batch = model(data_batch)
@@ -73,8 +83,8 @@ def runEvaluate(model_dir, data_dir, restore_file):
     params.cuda = torch.cuda.is_available()     # use GPU is available
 
     # Set the random seed for reproducible experiments
-    torch.manual_seed(230)
-    if params.cuda: torch.cuda.manual_seed(230)
+    torch.manual_seed(231)
+    if params.cuda: torch.cuda.manual_seed(231)
 
     # Get the logger
     utils.set_logger(os.path.join(args.model_dir, 'evaluate.log'))
@@ -107,7 +117,7 @@ def runEvaluate(model_dir, data_dir, restore_file):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--data_dir', default='data/HOUSES_SPLIT_64_64', help="Directory containing the dataset")
+    parser.add_argument('--data_dir', default=['data/HOUSES_SPLIT_SMALL', "data/HOUSES_SATELLITE_SPLIT_SMALL"], help="Directory containing the dataset")
     parser.add_argument('--model_dir', default='experiments/base_model', help="Directory containing params.json")
     parser.add_argument('--restore_file', default='best', help="name of the file in --model_dir \
                          containing weights to load")

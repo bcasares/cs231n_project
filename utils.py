@@ -24,7 +24,7 @@ class Params():
     def save(self, json_path):
         with open(json_path, 'w') as f:
             json.dump(self.__dict__, f, indent=4)
-            
+
     def update(self, json_path):
         """Loads parameters from json file"""
         with open(json_path) as f:
@@ -39,7 +39,7 @@ class Params():
 
 class RunningAverage():
     """A simple class that maintains the running average of a quantity
-    
+
     Example:
     ```
     loss_avg = RunningAverage()
@@ -51,15 +51,15 @@ class RunningAverage():
     def __init__(self):
         self.steps = 0
         self.total = 0
-    
+
     def update(self, val):
         self.total += val
         self.steps += 1
-    
+
     def __call__(self):
         return self.total/float(self.steps)
-        
-    
+
+
 def set_logger(log_path):
     """Set the logger to log info in terminal and file `log_path`.
 

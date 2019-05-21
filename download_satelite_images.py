@@ -28,6 +28,7 @@ class GoogleMapDownloader:
         self._size = size
         self._zoom = zoom
         self._type = type_
+        # self._google_key = "AIzaSyBEGgFPYFUUskTcmlFjBXQC3l5SU1xBbw8" #Tinder is overrated
         self._google_key = google_key
 
     def getXY(self):

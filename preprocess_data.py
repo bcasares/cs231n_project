@@ -72,10 +72,17 @@ def removeEmptyImages(image_directory, old_image_name = 'gsv_0.jpg'):
 	else:
 		shutil.rmtree(image_directory)
 
-def getImageName(directory="data/HOUSES"):
-	images = os.listdir(directory)
-	images = list(map(lambda x: x[:-4], images))
-	return images
+def getImageName(directories=["data/HOUSES"]):
+	for i, dir_ in enumerate(directories):
+		images = os.listdir(dir_)
+		images = list(map(lambda x: x[:-4], images))
+		images = set(images)
+		if i == 0:
+			total_images = set(images)
+		else:
+			total_images = total_images.intersection(images)
+
+	return list(total_images)
 
 
 def splitTrainTestVal(data, image_names, save=False):
@@ -83,8 +90,8 @@ def splitTrainTestVal(data, image_names, save=False):
 	random.seed(231)
 	random.shuffle(image_names)
 
-	split_1 = int(0.6 * len(image_names))
-	split_2 = int(0.8  * len(image_names))
+	split_1 = int(0.8 * len(image_names))
+	split_2 = int(0.9  * len(image_names))
 	train = data[:split_1]
 	val = data[split_1:split_2]
 	test = data[split_2:]
@@ -122,17 +129,22 @@ def filterData(data, image_names, row_id):
 	data = data[data[row_id].isin(image_names)]
 	return data
 
-def preprocessData(data, num_images=None, source_location="data/HOUSES", images_folder="data/HOUSES_SPLIT"):
+def preprocessData(data, num_images=None, source_locations=["data/HOUSES"], images_folders=["data/HOUSES_SPLIT"]):
 	# Filter, split, and get images in folder
-	image_names = getImageName()
+	image_names = getImageName(directories=source_locations)
 	data = filterData(data, image_names, row_id="rowID")
 	if num_images:
 		data = data.head(num_images)
 		image_names = image_names[:num_images]
 	train, val, test = splitTrainTestVal(data, image_names, save=False)
-	getImagesInFolderAll(data_list=[train, val, test], data_names=["train", "val", "test"],
-		source_location=source_location, images_folder=images_folder)
+
+	for source_location, images_folder in zip(source_locations, images_folders):
+		getImagesInFolderAll(data_list=[train, val, test], data_names=["train", "val", "test"],
+			source_location=source_location, images_folder=images_folder)
 	return train, val, test
+
+
+
 
 
 

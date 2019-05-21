@@ -17,7 +17,11 @@ from evaluate import evaluate
 
 from tensorboardX import SummaryWriter
 
-def train(model, optimizer, loss_fn, dataloader, metrics, params, writer=None, curr_iter=0):
+
+# Adding tensorboard
+# writer = SummaryWriter()
+
+def train(model, optimizer, loss_fn, dataloader, metrics, params):
     """Train the model on `num_steps` batches
 
     Args:
@@ -42,9 +46,19 @@ def train(model, optimizer, loss_fn, dataloader, metrics, params, writer=None, c
         for i, (train_batch, labels_batch) in enumerate(dataloader):
             # move to GPU if available
             if params.cuda:
-                train_batch, labels_batch = train_batch.cuda(non_blocking=True), labels_batch.cuda(non_blocking=True)
+                device = torch.device('cuda')
+            else:
+                device = torch.device('cpu')
+
+            # train_batch, labels_batch = train_batch.cuda(non_blocking=True), labels_batch.cuda(non_blocking=True)
             # convert to torch Variables
-            train_batch, labels_batch = Variable(train_batch), Variable(labels_batch)
+            dtype = torch.float32 # we will be using float throughout this tutorial
+            x, x2, x3 = train_batch
+            x = x.to(device=device, dtype=dtype)  # move to device, e.g. GPU
+            x2 = x2.to(device=device, dtype=dtype)
+            x3 = x3.to(device=device, dtype=dtype)
+            labels_batch = labels_batch.to(device=device, dtype=torch.float)
+            train_batch = (x, x2, x3)
 
             # compute model output and loss
             output_batch = model(train_batch)
@@ -66,13 +80,12 @@ def train(model, optimizer, loss_fn, dataloader, metrics, params, writer=None, c
                 # compute all metrics on this batch
                 summary_batch = {metric:metrics[metric](output_batch, labels_batch)
                                  for metric in metrics}
-                # summary_batch['loss'] = loss.data[0]
                 summary_batch['loss'] = loss.data.item()
 
-                if writer:
-                    for key, value in summary_batch.items():
-                        writer.add_scalar('train/' + key, value , curr_iter + i)
-                        # writer.add_scalar('train/' + key, value , count)
+                # if writer:
+                #     for key, value in summary_batch.items():
+                #         writer.add_scalar('train/' + key, value , curr_iter + i)
+                #         # writer.add_scalar('train/' + key, value , count)
 
                 summ.append(summary_batch)
 
@@ -89,7 +102,7 @@ def train(model, optimizer, loss_fn, dataloader, metrics, params, writer=None, c
 
 
 def train_and_evaluate(model, train_dataloader, val_dataloader, optimizer, loss_fn, metrics, params, model_dir,
-                       restore_file=None, writer=None):
+                       restore_file=None):
     """Train the model and evaluate every epoch.
 
     Args:
@@ -109,23 +122,20 @@ def train_and_evaluate(model, train_dataloader, val_dataloader, optimizer, loss_
         logging.info("Restoring parameters from {}".format(restore_path))
         utils.load_checkpoint(restore_path, model, optimizer)
 
-    best_val_acc = 0.0
+    best_val_acc = np.inf
 
     for epoch in range(params.num_epochs):
         # Run one epoch
         logging.info("Epoch {}/{}".format(epoch + 1, params.num_epochs))
 
         # compute number of batches in one epoch (one full pass over the training set)
-        print(params.batch_size)
-        print(params.batch_size)
-
-        train(model, optimizer, loss_fn, train_dataloader, metrics, params, writer, epoch*params.batch_size)
+        train(model, optimizer, loss_fn, train_dataloader, metrics, params)
 
         # Evaluate for one epoch on validation set
         val_metrics = evaluate(model, loss_fn, val_dataloader, metrics, params)
 
-        val_acc = val_metrics['accuracy']
-        is_best = val_acc>=best_val_acc
+        val_acc = val_metrics['rmse']
+        is_best = val_acc<=best_val_acc
 
         # Save weights
         utils.save_checkpoint({'epoch': epoch + 1,
@@ -136,7 +146,7 @@ def train_and_evaluate(model, train_dataloader, val_dataloader, optimizer, loss_
 
         # If best_eval, best_save_path
         if is_best:
-            logging.info("- Found new best accuracy")
+            logging.info("- Found new best rmse")
             best_val_acc = val_acc
 
             # Save best val metrics in a json file in the model directory
@@ -154,15 +164,12 @@ def runTraining(model_dir, data_dir, restore_file):
     assert os.path.isfile(json_path), "No json configuration file found at {}".format(json_path)
     params = utils.Params(json_path)
 
-    # Adding tensorboard
-    writer = SummaryWriter()
-
     # use GPU if available
     params.cuda = torch.cuda.is_available()
 
     # Set the random seed for reproducible experiments
-    torch.manual_seed(230)
-    if params.cuda: torch.cuda.manual_seed(230)
+    torch.manual_seed(231)
+    if params.cuda: torch.cuda.manual_seed(231)
 
     # Set the logger
     utils.set_logger(os.path.join(model_dir, 'train.log'))
@@ -188,12 +195,11 @@ def runTraining(model_dir, data_dir, restore_file):
     # Train the model
     logging.info("Starting training for {} epoch(s)".format(params.num_epochs))
     train_and_evaluate(model, train_dl, val_dl, optimizer, loss_fn, metrics, params, model_dir,
-                       restore_file, writer)
-    writer.close()
+                       restore_file)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--data_dir', default='data/HOUSES_SPLIT_64_64', help="Directory containing the dataset")
+    parser.add_argument('--data_dir', default=['data/HOUSES_SPLIT_SMALL', "data/HOUSES_SATELLITE_SPLIT_SMALL"], help="Directory containing the dataset")
     parser.add_argument('--model_dir', default='experiments/base_model', help="Directory containing params.json")
     parser.add_argument('--restore_file', default=None,
                         help="Optional, name of the file in --model_dir containing weights to reload before \

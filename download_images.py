@@ -7,8 +7,8 @@ import urllib.request, urllib.parse
 # key = "&key=" + "AIzaSyA7kqDO_6lbirEKKqDHcCIl05-AR0t9Yqg" # homework account
 # key = "&key=" + "AIzaSyDl3mMCFcSapH5j0TeAM97Ua_noRLiZKJY" # project account
 
-def loadData(file_name="data/CSVFiles/LAProp_Residential_2017_Only_Houses.csv"):
-	data = pd.read_csv(file_name)
+def loadData(file_name="data/clean_data.csv"):
+	data = pd.read_csv(file_name).reset_index(drop=True) #.drop(columns=['Unnamed: 0'])
 	return data
 
 
@@ -18,7 +18,8 @@ def changeParams(names, values):
 		'location': "",
 		'heading': '0',
 		'pitch': '0',
-		'key': 'AIzaSyDl3mMCFcSapH5j0TeAM97Ua_noRLiZKJY'
+		# 'key': 'AIzaSyDl3mMCFcSapH5j0TeAM97Ua_noRLiZKJY'
+		'key': 'AIzaSyA7kqDO_6lbirEKKqDHcCIl05-AR0t9Yqg'
 	}]
 	for name, value in zip(names, values):
 		params[0][name] = value
@@ -33,12 +34,15 @@ def getImageGoogleMap(data,location_name,row_name):
 		dir_path = download_directory + '/' + save_name
 		if os.path.isdir(dir_path):
 			return
-		lat_long = literal_eval(lat_long)
-		lat_long = str(lat_long[0]) + "," + str(lat_long[1])
-		params = changeParams(names=["location"], values=[lat_long])
-		results = google_streetview.api.results(params)
-		results.download_links(dir_path=dir_path)
-		results.save_links(dir_path + '/links.txt')
+		try:
+			lat_long = literal_eval(lat_long)
+			lat_long = str(lat_long[0]) + "," + str(lat_long[1])
+			params = changeParams(names=["location"], values=[lat_long])
+			results = google_streetview.api.results(params)
+			results.download_links(dir_path=dir_path)
+			results.save_links(dir_path + '/links.txt')
+		except Exception as e:
+			print(e)
 	return inner
 
 

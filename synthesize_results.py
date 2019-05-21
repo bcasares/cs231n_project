@@ -3,6 +3,7 @@
 import argparse
 import json
 import os
+import pandas as pd
 
 from tabulate import tabulate
 
@@ -42,6 +43,10 @@ def metrics_to_table(metrics):
     table = [[subdir] + [values[h] for h in headers] for subdir, values in metrics.items()]
     res = tabulate(table, headers, tablefmt='pipe')
 
+    latex_headers = ["Experiment"]+list(headers)
+    latex_headers = [r"\textbf{" + header + "}" for header in latex_headers]
+    df = pd.DataFrame.from_records(table, columns=latex_headers).round(3)
+    print(df.to_latex(bold_rows=True, column_format= '| l | l | c | c | c | c | c |', escape=False))
     return res
 
 
