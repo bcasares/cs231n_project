@@ -11,8 +11,8 @@ from torch.autograd import Variable
 from tqdm import tqdm
 
 import utils
-import model.net as net
-import model.data_loader as data_loader
+import model.net2 as net
+import model.data_loader2 as data_loader
 from evaluate import evaluate
 
 from tensorboardX import SummaryWriter
@@ -133,7 +133,8 @@ def train_and_evaluate(model, train_dataloader, val_dataloader, optimizer, loss_
         # Evaluate for one epoch on validation set
         val_metrics = evaluate(model, loss_fn, val_dataloader, metrics, params, writer["eval"], global_step)
         global_step+=1
-        val_acc = val_metrics['rmse']
+        # val_acc = val_metrics['rmse']
+        val_acc = val_metrics['huber_loss']
         is_best = val_acc<=best_val_acc
 
         # Save weights
@@ -145,7 +146,8 @@ def train_and_evaluate(model, train_dataloader, val_dataloader, optimizer, loss_
 
         # If best_eval, best_save_path
         if is_best:
-            logging.info("- Found new best rmse")
+            # logging.info("- Found new best rmse")
+            logging.info("- Found new best huber_loss")
             best_val_acc = val_acc
 
             # Save best val metrics in a json file in the model directory

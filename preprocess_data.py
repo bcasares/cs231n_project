@@ -12,6 +12,11 @@ def loadData(file_name="data/clean_normalized.csv"):
 	logTotalValue(data, column_id="TotalValue")
 	return data
 
+
+def loadDataResidual(file_name="data/residual_analysis.csv"):
+	data = pd.read_csv(file_name)
+	return data
+
 def getClass(range_values):
     def inner(total_value):
         min_value = np.inf

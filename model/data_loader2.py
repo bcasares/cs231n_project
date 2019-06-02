@@ -9,7 +9,7 @@ from torch.utils.data import Dataset, DataLoader
 import torchvision.transforms as transforms
 
 from download_images import loadData
-from preprocess_data import extractName, loadData
+from preprocess_data import extractName, loadDataResidual
 
 import numpy as np
 
@@ -41,13 +41,14 @@ class HOUSEDataset(Dataset):
             transform: (torchvision.transforms) transformation to apply on image
         """
 
-        self.keep = ['TaxRateArea', 'totBuildingDataLines', 'EffectiveYearBuilt', 'SQFTmain',
-                     'LandValue', 'Bedrooms', 'Bathrooms', 'zip_class']
+        # Available columns
+        # TotalValue  rowID   log_total_value residual    log_total_value_pred
+        self.keep = ['log_total_value_pred']
 
         self.filenames = self.getFilenames(data_dir)
         self.filenames2 = self.getFilenames(data_dir2)
 
-        self.data = loadData()
+        self.data = loadDataResidual()
         self.data = self.data[self.data["rowID"].isin(self.getIds())].reset_index(drop=True)
 
         self.labels = self.getImagesLabel(id_="rowID", y_id="log_total_value")
@@ -86,7 +87,6 @@ class HOUSEDataset(Dataset):
         info_vector = self.data[self.data[id_].isin(ids)][self.keep].reset_index(drop=True) #.tolist()
         return info_vector
 
-
     def __len__(self):
         return len(self.filenames)
 
@@ -113,7 +113,6 @@ class HOUSEDataset(Dataset):
         label = self.labels[idx]
 
         return [image, image2, np.asarray(list(map(float,vec)))], label
-
 
 def fetch_dataloader(types, data_dir, params):
     """
