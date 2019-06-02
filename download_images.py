@@ -8,7 +8,7 @@ import urllib.request, urllib.parse
 # key = "&key=" + "AIzaSyDl3mMCFcSapH5j0TeAM97Ua_noRLiZKJY" # project account
 
 def loadData(file_name="data/clean_data.csv"):
-	data = pd.read_csv(file_name).reset_index(drop=True) #.drop(columns=['Unnamed: 0'])
+	data = pd.read_csv(file_name).reset_index(drop=True).drop(columns=['Unnamed: 0'])
 	return data
 
 

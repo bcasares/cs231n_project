@@ -3,12 +3,13 @@ import os
 from glob import glob
 import shutil
 import random
+import pandas as pd
 
 from download_images import loadData
 
-def getDataLabels():
-	data = loadData()
-	_ = labelData(data)
+def loadData(file_name="data/clean_normalized.csv"):
+	data = pd.read_csv(file_name)
+	logTotalValue(data, column_id="TotalValue")
 	return data
 
 def getClass(range_values):

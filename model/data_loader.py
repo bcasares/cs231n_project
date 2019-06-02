@@ -2,11 +2,14 @@ import random
 import os
 
 from PIL import Image
+from PIL import ImageFile
+ImageFile.LOAD_TRUNCATED_IMAGES = True
+
 from torch.utils.data import Dataset, DataLoader
 import torchvision.transforms as transforms
 
 from download_images import loadData
-from preprocess_data import extractName, getDataLabels
+from preprocess_data import extractName, loadData
 
 import numpy as np
 
@@ -44,7 +47,7 @@ class HOUSEDataset(Dataset):
         self.filenames = self.getFilenames(data_dir)
         self.filenames2 = self.getFilenames(data_dir2)
 
-        self.data = getDataLabels()
+        self.data = loadData()
         self.data = self.data[self.data["rowID"].isin(self.getIds())].reset_index(drop=True)
 
         self.labels = self.getImagesLabel(id_="rowID", y_id="log_total_value")
@@ -54,16 +57,16 @@ class HOUSEDataset(Dataset):
         self.train = train
 
         ## Uncomment to see the iamges at idx
-#         idx = 11
-#         image = Image.open(self.filenames[idx])  # PIL image
-#         image2 = Image.open(self.filenames2[idx])  # PIL image
-#         image.show()
-#         image2.show()
-#         vec  = self.info_vector.iloc[idx].to_list()
-#         label = self.labels[idx]
+        # idx = 11
+        # image = Image.open(self.filenames[idx])  # PIL image
+        # image2 = Image.open(self.filenames2[idx])  # PIL image
+        # image.show()
+        # image2.show()
+        # vec  = self.info_vector.iloc[idx].to_list()
+        # label = self.labels[idx]
 
-#         print(vec, label)
-#         display(self.data)
+        # print(vec, label)
+        # display(self.data)
 
     def getFilenames(self, data_dir):
         filenames = os.listdir(data_dir)
@@ -85,7 +88,6 @@ class HOUSEDataset(Dataset):
 
 
     def __len__(self):
-        # return size of dataset
         return len(self.filenames)
 
     def __getitem__(self, idx):
@@ -97,7 +99,9 @@ class HOUSEDataset(Dataset):
 
         Returns:
             image: (Tensor) transformed image
-            label: (int) corresponding label of image
+            image2:
+            data_labels
+            label: logtotal value
         """
         image = Image.open(self.filenames[idx])  # PIL image
         image = self.transform(image)

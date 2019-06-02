@@ -31,7 +31,6 @@ class CNNImages(nn.Module):
         return out
 
 class InfoVector(nn.Module):
-    #  Vector
     def __init__(self, in_channel, num_classes):
         super().__init__()
         self.linear_vec = nn.Linear(in_channel, num_classes)  # in and one out
@@ -41,37 +40,39 @@ class InfoVector(nn.Module):
         out = self.linear_vec(out)
         return out
 
+def build_mlp():
+  return nn.Sequential(
+    # nn.Linear(512*2 + 8, 1024),
+    # nn.Linear(8, 1024),
+    nn.Linear(512, 1024),
+    nn.ReLU(),
+    nn.Linear(1024, 1),
+  )
 
 class Net(nn.Module):
     def __init__(self, params):
         super().__init__()
-        in_channel, channel_1, channel_2, num_classes = (3, 32, 16, 1)
-        self.steeet_view = CNNImages(in_channel, channel_1, channel_2, num_classes)
-        self.satellite = CNNImages(in_channel, channel_1, channel_2, num_classes)
+        in_channel, channel_1, channel_2, num_classes_cnn, num_classes_info_vec = (3, 32, 16, 512, 1)
+        self.steeet_view = CNNImages(in_channel, channel_1, channel_2, num_classes_cnn)
+        self.satellite = CNNImages(in_channel, channel_1, channel_2, num_classes_cnn)
         self.info_vector = InfoVector(8, 1)
-
-        # Last Linear Layer
-        self.fc_last = nn.Linear(2, num_classes, bias=True)
-        nn.init.kaiming_normal_(self.fc_last.weight)
+        self.mlp = build_mlp()
 
     def forward(self, x):
-        x1, x2, x3 = x
-        out = self.steeet_view(x1)
-        # out2 = self.satellite(x2)
-        # out3 = self.info_vector(x3)
+        street_view_data, satellite_data, attributes = x
+        # out = self.steeet_view(street_view_data)
+        # out2 = self.satellite(satellite_data)
+        out3 = self.info_vector(attributes)
 
-#         print(out.size())
-#         print(out2.size())
+        # combined = torch.cat((out, out2), dim=1)
+        # combined = out
+        # print(combined.size())
 
-#         combined = torch.cat((out, out2), 1)
-#         print(combined.size())
-
-#         out_tot = self.fc_last(combined)
-#         print(out_tot.size())
+        # out = self.mlp(combined)
 
 #         scores = out_tot
 
-        scores = out
+        scores = out3
 
         return scores
 
@@ -80,24 +81,23 @@ def loss_fn(outputs, labels):
     Computes the loss: Huber loss for this project
 
     """
-    loss = F.smooth_l1_loss(outputs, labels)
+    # loss = F.smooth_l1_loss(outputs, labels)
+    loss = F.mse_loss(outputs, labels)
     return loss
 
 def calculateMSE(outputs, labels):
     """
     Calculates the RMSE
     """
-    rmse_sum = ((outputs - labels)**2).sum()
-    rmse = float(rmse_sum) / float(labels.size)
-    return rmse
+    mse = ((outputs - labels)**2).mean()
+    return mse
 
 def calculateRMSE(outputs, labels):
     """
     Calculates the RMSE
     """
-    rmse_sum = ((outputs - labels)**2).sum()
-    rmse = np.sqrt(float(rmse_sum)) / float(labels.size)
-    return rmse
+    mse = calculateMSE(outputs, labels)
+    return np.sqrt(mse)
 
 def dollarValue(outputs, labels):
     """
@@ -113,5 +113,4 @@ metrics = {
     'mse' : calculateMSE,
     'rmse': calculateRMSE,
     'dollar_value' : dollarValue
-
 }

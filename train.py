@@ -17,11 +17,7 @@ from evaluate import evaluate
 
 from tensorboardX import SummaryWriter
 
-
-# Adding tensorboard
-# writer = SummaryWriter()
-
-def train(model, optimizer, loss_fn, dataloader, metrics, params):
+def train(model, optimizer, loss_fn, dataloader, metrics, params, writer, global_step):
     """Train the model on `num_steps` batches
 
     Args:
@@ -99,10 +95,13 @@ def train(model, optimizer, loss_fn, dataloader, metrics, params):
     metrics_mean = {metric:np.mean([x[metric] for x in summ]) for metric in summ[0]}
     metrics_string = " ; ".join("{}: {:05.3f}".format(k, v) for k, v in metrics_mean.items())
     logging.info("- Train metrics: " + metrics_string)
+    for k, v in metrics_mean.items():
+        if k != "dollar_value":
+            writer.add_scalar(tag=k, global_step=global_step, scalar_value=v)
 
 
 def train_and_evaluate(model, train_dataloader, val_dataloader, optimizer, loss_fn, metrics, params, model_dir,
-                       restore_file=None):
+                       restore_file, writer):
     """Train the model and evaluate every epoch.
 
     Args:
@@ -123,17 +122,17 @@ def train_and_evaluate(model, train_dataloader, val_dataloader, optimizer, loss_
         utils.load_checkpoint(restore_path, model, optimizer)
 
     best_val_acc = np.inf
-
+    global_step = 0
     for epoch in range(params.num_epochs):
         # Run one epoch
         logging.info("Epoch {}/{}".format(epoch + 1, params.num_epochs))
 
         # compute number of batches in one epoch (one full pass over the training set)
-        train(model, optimizer, loss_fn, train_dataloader, metrics, params)
+        train(model, optimizer, loss_fn, train_dataloader, metrics, params, writer["train"], global_step)
 
         # Evaluate for one epoch on validation set
-        val_metrics = evaluate(model, loss_fn, val_dataloader, metrics, params)
-
+        val_metrics = evaluate(model, loss_fn, val_dataloader, metrics, params, writer["eval"], global_step)
+        global_step+=1
         val_acc = val_metrics['rmse']
         is_best = val_acc<=best_val_acc
 
@@ -171,6 +170,18 @@ def runTraining(model_dir, data_dir, restore_file):
     torch.manual_seed(231)
     if params.cuda: torch.cuda.manual_seed(231)
 
+    # Addint tensorbard
+    if restore_file == None:
+        writer_train = SummaryWriter(log_dir="Tensorboard/" + os.path.join(model_dir,"train") + ".SUNet")
+        writer_eval = SummaryWriter(log_dir="Tensorboard/" + os.path.join(model_dir, "eval") + ".SUNet")
+        writer = {"train": writer_train, "eval": writer_eval}
+
+        # writer = SummaryWriter()
+    else:
+        writer_train = SummaryWriter(log_dir="Tensorboard/" + os.path.join(restore_file, "train") + ".SUNet")
+        writer_eval = SummaryWriter(log_dir="Tensorboard/" + os.path.join(restore_file, "eval") + ".SUNet")
+        writer = {"train": writer_train, "eval": writer_eval}
+
     # Set the logger
     utils.set_logger(os.path.join(model_dir, 'train.log'))
 
@@ -195,18 +206,19 @@ def runTraining(model_dir, data_dir, restore_file):
     # Train the model
     logging.info("Starting training for {} epoch(s)".format(params.num_epochs))
     train_and_evaluate(model, train_dl, val_dl, optimizer, loss_fn, metrics, params, model_dir,
-                       restore_file)
+                       restore_file, writer)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--data_dir', default=['data/HOUSES_SPLIT_SMALL', "data/HOUSES_SATELLITE_SPLIT_SMALL"], help="Directory containing the dataset")
+    parser.add_argument('--data_dir', default='data/HOUSES_SPLIT_SMALL,data/HOUSES_SATELLITE_SPLIT_SMALL', help="Directory containing the dataset")
     parser.add_argument('--model_dir', default='experiments/base_model', help="Directory containing params.json")
     parser.add_argument('--restore_file', default=None,
                         help="Optional, name of the file in --model_dir containing weights to reload before \
                         training")  # 'best' or 'train'
-
     # Load the parameters from json file
     args = parser.parse_args()
-    runTraining(model_dir=args.model_dir, data_dir=args.data_dir, restore_file=args.restore_file)
+    data_dir = args.data_dir.split(",")
+    print(data_dir)
+    runTraining(model_dir=args.model_dir, data_dir=data_dir, restore_file=args.restore_file)
 
 
