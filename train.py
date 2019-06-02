@@ -94,7 +94,7 @@ def train(model, optimizer, loss_fn, dataloader, metrics, params, writer, global
     # compute mean of all metrics in summary
     metrics_mean = {metric:np.mean([x[metric] for x in summ]) for metric in summ[0]}
     metrics_string = " ; ".join("{}: {:05.3f}".format(k, v) for k, v in metrics_mean.items())
-    logging.info("- Train metrics: " + metrics_string)
+    # logging.info("- Train metrics: " + metrics_string)
     for k, v in metrics_mean.items():
         if k != "dollar_value":
             writer.add_scalar(tag=k, global_step=global_step, scalar_value=v)
@@ -165,6 +165,7 @@ def runTraining(model_dir, data_dir, restore_file):
 
     # use GPU if available
     params.cuda = torch.cuda.is_available()
+    print(params.cuda)
 
     # Set the random seed for reproducible experiments
     torch.manual_seed(231)
@@ -210,8 +211,8 @@ def runTraining(model_dir, data_dir, restore_file):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--data_dir', default='data/HOUSES_SPLIT_SMALL,data/HOUSES_SATELLITE_SPLIT_SMALL', help="Directory containing the dataset")
-    parser.add_argument('--model_dir', default='experiments/base_model', help="Directory containing params.json")
+    parser.add_argument('--data_dir', default='data/HOUSES_SPLIT,data/HOUSES_SATELLITE_SPLIT', help="Directory containing the dataset")
+    parser.add_argument('--model_dir', default='experiments/base_model_features', help="Directory containing params.json")
     parser.add_argument('--restore_file', default=None,
                         help="Optional, name of the file in --model_dir containing weights to reload before \
                         training")  # 'best' or 'train'
