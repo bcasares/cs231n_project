@@ -31,19 +31,9 @@ class CNNImages(nn.Module):
         out = self.fc(out)
         return out
 
-class InfoVector(nn.Module):
-    def __init__(self, in_channel, num_classes):
-        super().__init__()
-        self.linear_vec = nn.Linear(in_channel, num_classes)  # in and one out
-
-    def forward(self, x):
-        out = x
-        out = self.linear_vec(out)
-        return out
-
 def build_mlp():
   return nn.Sequential(
-    nn.Linear(512*2+1, 1024),
+    nn.Linear(512*2, 1024),
     nn.ReLU(),
     nn.Linear(1024, 1),
   )
@@ -54,16 +44,14 @@ class Net(nn.Module):
         in_channel, channel_1, channel_2, num_classes_cnn, num_classes_info_vec = (3, 32, 16, 512, 1)
         self.steeet_view = CNNImages(in_channel, channel_1, channel_2, num_classes_cnn)
         self.satellite = CNNImages(in_channel, channel_1, channel_2, num_classes_cnn)
-        self.info_vector = InfoVector(1, 1)
         self.mlp = build_mlp()
 
     def forward(self, x):
-        street_view_data, satellite_data, attributes = x
+        street_view_data, satellite_data, _ = x
         out = self.steeet_view(street_view_data)
         out2 = self.satellite(satellite_data)
-        out3 = self.info_vector(attributes)
 
-        combined = torch.cat((out, out2, out3), dim=1)
+        combined = torch.cat((out, out2), dim=1)
 
         out = self.mlp(combined)
 
@@ -86,17 +74,7 @@ def huberLoss(outputs, labels):
     loss = huber(delta, r)
     return loss
 
-def dollarValue(outputs, labels):
-    """
-    Calculates the dollar value from the RMSE
-    """
-    loss = huberLoss(outputs, labels)
-    dollar_value = np.exp(loss)
-    return dollar_value
-
-
 # maintain all metrics required in this dictionary- these are used in the training and evaluation loops
 metrics = {
     'huber_loss' : huberLoss,
-    "dollar_value" : dollarValue
 }

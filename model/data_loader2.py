@@ -43,7 +43,7 @@ class HOUSEDataset(Dataset):
 
         # Available columns
         # TotalValue  rowID   log_total_value residual    log_total_value_pred
-        self.keep = ['log_total_value_pred']
+        # self.keep = ['log_total_value_pred']
 
         self.filenames = self.getFilenames(data_dir)
         self.filenames2 = self.getFilenames(data_dir2)
@@ -51,8 +51,8 @@ class HOUSEDataset(Dataset):
         self.data = loadDataResidual()
         self.data = self.data[self.data["rowID"].isin(self.getIds())].reset_index(drop=True)
 
-        self.labels = self.getImagesLabel(id_="rowID", y_id="log_total_value")
-        self.info_vector = self.getInfoVector(id_="rowID", y_id="log_total_value")
+        self.labels = self.getImagesLabel(id_="rowID", y_id="residual")
+        # self.info_vector = self.getInfoVector(id_="rowID", y_id="log_total_value")
 
         self.transform = transform
         self.train = train
@@ -82,9 +82,9 @@ class HOUSEDataset(Dataset):
         label = self.data[self.data[id_].isin(ids)][y_id].tolist()
         return label
 
-    def getInfoVector(self, id_, y_id):
-        ids = self.getIds()
-        info_vector = self.data[self.data[id_].isin(ids)][self.keep].reset_index(drop=True) #.tolist()
+    # def getInfoVector(self, id_, y_id):
+    #     ids = self.getIds()
+    #     info_vector = self.data[self.data[id_].isin(ids)][self.keep].reset_index(drop=True) #.tolist()
         return info_vector
 
     def __len__(self):
@@ -109,10 +109,11 @@ class HOUSEDataset(Dataset):
         image2 = Image.open(self.filenames2[idx])  # PIL image
         image2 = self.transform(image2)
 
-        vec  = self.info_vector.iloc[idx].to_list()
+        # vec  = self.info_vector.iloc[idx].to_list()
         label = self.labels[idx]
 
-        return [image, image2, np.asarray(list(map(float,vec)))], label
+        # return [image, image2, np.asarray(list(map(float,vec)))], label
+        return [image, image2, 0], label
 
 def fetch_dataloader(types, data_dir, params):
     """
