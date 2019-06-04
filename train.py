@@ -98,6 +98,7 @@ def train(model, optimizer, loss_fn, dataloader, metrics, params, writer, global
     for k, v in metrics_mean.items():
         if k != "dollar_value":
             writer.add_scalar(tag=k, global_step=global_step, scalar_value=v)
+    return metrics_mean
 
 
 def train_and_evaluate(model, train_dataloader, val_dataloader, optimizer, loss_fn, metrics, params, model_dir,
@@ -122,18 +123,29 @@ def train_and_evaluate(model, train_dataloader, val_dataloader, optimizer, loss_
         utils.load_checkpoint(restore_path, model, optimizer)
 
     best_val_acc = np.inf
+    best_train_acc = np.inf
+
     global_step = 0
     for epoch in range(params.num_epochs):
         # Run one epoch
         logging.info("Epoch {}/{}".format(epoch + 1, params.num_epochs))
 
         # compute number of batches in one epoch (one full pass over the training set)
-        train(model, optimizer, loss_fn, train_dataloader, metrics, params, writer["train"], global_step)
+        train_metrics = train(model, optimizer, loss_fn, train_dataloader, metrics, params, writer["train"], global_step)
 
         # Evaluate for one epoch on validation set
         val_metrics = evaluate(model, loss_fn, val_dataloader, metrics, params, writer["eval"], global_step)
         global_step+=1
         # val_acc = val_metrics['rmse']
+
+        train_acc = train_metrics["huber_loss"]
+        is_best_train = train_acc<=best_train_acc
+
+        if is_best_train:
+            best_train_acc = train_acc
+            best_json_path_train = os.path.join(model_dir, "metrics_training_.json")
+            utils.save_dict_to_json(train_metrics, best_json_path_train)
+
 
         val_acc = val_metrics['huber_loss']
         is_best = val_acc<=best_val_acc
