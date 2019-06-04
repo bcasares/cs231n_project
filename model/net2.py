@@ -35,6 +35,10 @@ def build_mlp():
   return nn.Sequential(
     nn.Linear(512*2, 1024),
     nn.ReLU(),
+    nn.Linear(1024, 1024),
+    nn.ReLU(),
+    nn.Linear(512*2, 1024),
+    nn.ReLU(),
     nn.Linear(1024, 1),
   )
 
@@ -64,8 +68,8 @@ def loss_fn(outputs, labels):
     Computes the loss: Huber loss for this project
 
     """
-    loss = F.smooth_l1_loss(outputs, labels)
-    # loss = F.mse_loss(outputs, labels)
+    # loss = F.smooth_l1_loss(outputs, labels)
+    loss = F.mse_loss(outputs, labels)
     return loss
 
 def huberLoss(outputs, labels):
@@ -74,7 +78,33 @@ def huberLoss(outputs, labels):
     loss = huber(delta, r)
     return loss
 
+
+def calculateMSE(outputs, labels):
+    """
+    Calculates the RMSE
+    """
+    mse = ((outputs - labels)**2).mean()
+    return mse
+
+def calculateRMSE(outputs, labels):
+    """
+    Calculates the RMSE
+    """
+    mse = calculateMSE(outputs, labels)
+    return np.sqrt(mse)
+
+def dollarValue(outputs, labels):
+    """
+    Calculates the dollar value from the RMSE
+    """
+    rmse = calculateRMSE(outputs, labels)
+    dollar_value = np.exp(rmse)
+    return dollar_value
+
+
 # maintain all metrics required in this dictionary- these are used in the training and evaluation loops
 metrics = {
-    'huber_loss' : huberLoss,
+    'mse' : calculateMSE,
+    'rmse': calculateRMSE,
+    'dollar_value' : dollarValue
 }

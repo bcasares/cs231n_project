@@ -51,9 +51,9 @@ class HOUSEDataset(Dataset):
         self.data = loadDataResidual()
         self.data = self.data[self.data["rowID"].isin(self.getIds())].reset_index(drop=True)
 
-        self.labels = self.getImagesLabel(id_="rowID", y_id="residual")
-        self.log_value = self.getImagesLabel(id_="rowID", y_id="log_total_value")
-        self.log_value_pred = self.getImagesLabel(id_="rowID", y_id="log_total_value_pred")
+        self.labels = self.getImagesLabel(id_="rowID", y_id="log_total_value")
+        # self.log_value = self.getImagesLabel(id_="rowID", y_id="log_total_value")
+        # self.log_value_pred = self.getImagesLabel(id_="rowID", y_id="log_total_value_pred")
 
         # self.info_vector = self.getInfoVector(id_="rowID", y_id="log_total_value")
 
@@ -88,7 +88,7 @@ class HOUSEDataset(Dataset):
     # def getInfoVector(self, id_, y_id):
     #     ids = self.getIds()
     #     info_vector = self.data[self.data[id_].isin(ids)][self.keep].reset_index(drop=True) #.tolist()
-        return info_vector
+        # return info_vector
 
     def __len__(self):
         return len(self.filenames)
@@ -114,10 +114,10 @@ class HOUSEDataset(Dataset):
 
         # vec  = self.info_vector.iloc[idx].to_list()
         label = self.labels[idx]
-        residual = self.log_value[idx] - self.log_value_pred[idx]
+        # residual = self.log_value[idx] - self.log_value_pred[idx]
 
         # return [image, image2, np.asarray(list(map(float,vec)))], label
-        return [image, image2, residual], label
+        return [image, image2, 0], label
 
 def fetch_dataloader(types, data_dir, params):
     """

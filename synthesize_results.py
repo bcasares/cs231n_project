@@ -9,7 +9,7 @@ from tabulate import tabulate
 
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--parent_dir', default='experiments',
+parser.add_argument('--parent_dir', default='experiments/MSE/',
                     help='Directory containing results of experiments')
 
 
@@ -40,6 +40,7 @@ def aggregate_metrics(parent_dir, metrics):
 def metrics_to_table(metrics):
     # Get the headers from the first subdir. Assumes everything has the same metrics
     headers = metrics[list(metrics.keys())[0]].keys()
+    print(headers)
     table = [[subdir] + [values[h] for h in headers] for subdir, values in metrics.items()]
     res = tabulate(table, headers, tablefmt='pipe')
 

@@ -72,13 +72,13 @@ def train(model, optimizer, loss_fn, dataloader, metrics, params, writer, global
                 # extract data from torch Variable, move to cpu, convert to numpy arrays
                 output_batch = output_batch.data.cpu().numpy()
                 labels_batch = labels_batch.data.cpu().numpy()
-                residual = x3.cpu().numpy()
+                # residual = x3.cpu().numpy()
 
                 # compute all metrics on this batch
                 summary_batch = {metric:metrics[metric](output_batch, labels_batch)
                                  for metric in metrics}
                 summary_batch['loss'] = loss.data.item()
-                summary_batch["explaining_variation"] = np.abs(residual - output_batch)
+                # summary_batch["explaining_variation"] = np.abs(residual - output_batch)
 
                 summ.append(summary_batch)
 
@@ -133,9 +133,9 @@ def train_and_evaluate(model, train_dataloader, val_dataloader, optimizer, loss_
         # Evaluate for one epoch on validation set
         val_metrics = evaluate(model, loss_fn, val_dataloader, metrics, params, writer["eval"], global_step)
         global_step+=1
-        # val_acc = val_metrics['rmse']
 
-        train_acc = train_metrics["huber_loss"]
+        train_acc = val_metrics['rmse']
+        # train_acc = train_metrics["huber_loss"]
         is_best_train = train_acc<=best_train_acc
 
         if is_best_train:
@@ -143,8 +143,8 @@ def train_and_evaluate(model, train_dataloader, val_dataloader, optimizer, loss_
             best_json_path_train = os.path.join(model_dir, "metrics_training_.json")
             utils.save_dict_to_json(train_metrics, best_json_path_train)
 
-
-        val_acc = val_metrics['huber_loss']
+        val_acc = val_metrics['rmse']
+        # val_acc = val_metrics['huber_loss']
         is_best = val_acc<=best_val_acc
 
         # Save weights
