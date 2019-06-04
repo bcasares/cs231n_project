@@ -72,16 +72,13 @@ def train(model, optimizer, loss_fn, dataloader, metrics, params, writer, global
                 # extract data from torch Variable, move to cpu, convert to numpy arrays
                 output_batch = output_batch.data.cpu().numpy()
                 labels_batch = labels_batch.data.cpu().numpy()
+                residual = x3.cpu().numpy()
 
                 # compute all metrics on this batch
                 summary_batch = {metric:metrics[metric](output_batch, labels_batch)
                                  for metric in metrics}
                 summary_batch['loss'] = loss.data.item()
-
-                # if writer:
-                #     for key, value in summary_batch.items():
-                #         writer.add_scalar('train/' + key, value , curr_iter + i)
-                #         # writer.add_scalar('train/' + key, value , count)
+                summary_batch["explaining_variation"] = np.abs(residual - output_batch)
 
                 summ.append(summary_batch)
 
@@ -226,8 +223,8 @@ def runTraining(model_dir, data_dir, restore_file):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--data_dir', default='data/HOUSES_SPLIT,data/HOUSES_SATELLITE_SPLIT', help="Directory containing the dataset")
-    parser.add_argument('--model_dir', default='experiments/fitting_residual_first_try', help="Directory containing params.json")
+    parser.add_argument('--data_dir', default='data/HOUSES_SPLIT_SMALL,data/HOUSES_SATELLITE_SPLIT_SMALL', help="Directory containing the dataset")
+    parser.add_argument('--model_dir', default='experiments/base_model', help="Directory containing params.json")
     parser.add_argument('--restore_file', default=None,
                         help="Optional, name of the file in --model_dir containing weights to reload before \
                         training")  # 'best' or 'train'
