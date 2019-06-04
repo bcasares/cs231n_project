@@ -134,6 +134,7 @@ def train_and_evaluate(model, train_dataloader, val_dataloader, optimizer, loss_
         val_metrics = evaluate(model, loss_fn, val_dataloader, metrics, params, writer["eval"], global_step)
         global_step+=1
         # val_acc = val_metrics['rmse']
+
         val_acc = val_metrics['huber_loss']
         is_best = val_acc<=best_val_acc
 
@@ -213,7 +214,7 @@ def runTraining(model_dir, data_dir, restore_file):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--data_dir', default='data/HOUSES_SPLIT_SMALL,data/HOUSES_SATELLITE_SPLIT_SMALL', help="Directory containing the dataset")
+    parser.add_argument('--data_dir', default='data/HOUSES_SPLIT,data/HOUSES_SATELLITE_SPLIT', help="Directory containing the dataset")
     parser.add_argument('--model_dir', default='experiments/fitting_residual_first_try', help="Directory containing params.json")
     parser.add_argument('--restore_file', default=None,
                         help="Optional, name of the file in --model_dir containing weights to reload before \

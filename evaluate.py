@@ -63,9 +63,15 @@ def evaluate(model, loss_fn, dataloader, metrics, params, writer=None, global_st
         summ.append(summary_batch)
 
     # compute mean of all metrics in summary
-    metrics_mean = {metric:np.mean([x[metric] for x in summ]) for metric in summ[0]}
+    # metrics_mean = {metric:np.mean([x[metric] for x in summ]) for metric in summ[0]}
+    metrics_mean = {}
+    for metric in summ[0]:
+        for x in summ:
+            temp = np.mean([x[metric]])
+            metrics_mean[metric] = temp
+
     metrics_string = " ; ".join("{}: {:05.3f}".format(k, v) for k, v in metrics_mean.items())
-    # logging.info("- Eval metrics : " + metrics_string)
+    logging.info("- Eval metrics : " + metrics_string)
 
     if writer != None:
         for k, v in metrics_mean.items():
