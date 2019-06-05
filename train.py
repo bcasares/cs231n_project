@@ -11,7 +11,7 @@ from torch.autograd import Variable
 from tqdm import tqdm
 
 import utils
-import model.net3 as net
+import model.net2 as net
 import model.data_loader2 as data_loader
 from evaluate import evaluate
 
@@ -49,13 +49,13 @@ def train(model, optimizer, loss_fn, dataloader, metrics, params, writer, global
             # train_batch, labels_batch = train_batch.cuda(non_blocking=True), labels_batch.cuda(non_blocking=True)
             # convert to torch Variables
             dtype = torch.float32 # we will be using float throughout this tutorial
-            # x, x2, x3 = train_batch
-            # x = x.to(device=device, dtype=dtype)  # move to device, e.g. GPU
-            # x2 = x2.to(device=device, dtype=dtype)
-            # x3 = x3.to(device=device, dtype=dtype)
-            # train_batch = (x, x2, x3)
+            x, x2, x3 = train_batch
+            x = x.to(device=device, dtype=dtype)  # move to device, e.g. GPU
+            x2 = x2.to(device=device, dtype=dtype)
+            x3 = x3.to(device=device, dtype=dtype)
+            train_batch = (x, x2, x3)
 
-            train_batch = train_batch.to(device=device, dtype=torch.float)
+            # train_batch = train_batch.to(device=device, dtype=torch.float)
             labels_batch = labels_batch.to(device=device, dtype=torch.float)
 
             # compute model output and loss
