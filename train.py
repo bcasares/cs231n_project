@@ -187,8 +187,8 @@ def runTraining(model_dir, data_dir, restore_file):
 
     # Addint tensorbard
     if restore_file == None:
-        writer_train = SummaryWriter(log_dir="Tensorboard/" + os.path.join(model_dir,"train") + ".SUNet")
-        writer_eval = SummaryWriter(log_dir="Tensorboard/" + os.path.join(model_dir, "eval") + ".SUNet")
+        writer_train = SummaryWriter("Tensorboard/" + os.path.join(model_dir,"train") + ".SUNet")
+        writer_eval = SummaryWriter("Tensorboard/" + os.path.join(model_dir, "eval") + ".SUNet")
         writer = {"train": writer_train, "eval": writer_eval}
 
         # writer = SummaryWriter()
@@ -225,7 +225,7 @@ def runTraining(model_dir, data_dir, restore_file):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--data_dir', default='data/HOUSES_SPLIT_SMALL,data/HOUSES_SATELLITE_SPLIT_SMALL', help="Directory containing the dataset")
+    parser.add_argument('--data_dir', default='data/HOUSES_SPLIT,data/HOUSES_SATELLITE_SPLIT', help="Directory containing the dataset")
     parser.add_argument('--model_dir', default='experiments/base_model', help="Directory containing params.json")
     parser.add_argument('--restore_file', default=None,
                         help="Optional, name of the file in --model_dir containing weights to reload before \
