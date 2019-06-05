@@ -11,8 +11,8 @@ from torch.autograd import Variable
 from tqdm import tqdm
 
 import utils
-import model.net2 as net
-import model.data_loader2 as data_loader
+import model.net4 as net
+import model.data_loader4 as data_loader
 from evaluate import evaluate
 
 from tensorboardX import SummaryWriter
@@ -49,14 +49,14 @@ def train(model, optimizer, loss_fn, dataloader, metrics, params, writer, global
             # train_batch, labels_batch = train_batch.cuda(non_blocking=True), labels_batch.cuda(non_blocking=True)
             # convert to torch Variables
             dtype = torch.float32 # we will be using float throughout this tutorial
-            x, x2, x3 = train_batch
-            x = x.to(device=device, dtype=dtype)  # move to device, e.g. GPU
-            x2 = x2.to(device=device, dtype=dtype)
-            x3 = x3.to(device=device, dtype=dtype)
-            train_batch = (x, x2, x3)
+            # x, x2, x3 = train_batch
+            # x = x.to(device=device, dtype=dtype)  # move to device, e.g. GPU
+            # x2 = x2.to(device=device, dtype=dtype)
+            # x3 = x3.to(device=device, dtype=dtype)
+            # train_batch = (x, x2, x3)
 
-            # train_batch = train_batch.to(device=device, dtype=torch.float)
-            labels_batch = labels_batch.to(device=device, dtype=torch.float)
+            train_batch = train_batch.to(device=device, dtype=torch.float)
+            labels_batch = labels_batch.to(device=device, dtype=torch.long)
 
             # compute model output and loss
             output_batch = model(train_batch)
@@ -121,8 +121,11 @@ def train_and_evaluate(model, train_dataloader, val_dataloader, optimizer, loss_
         logging.info("Restoring parameters from {}".format(restore_path))
         utils.load_checkpoint(restore_path, model, optimizer)
 
-    best_val_acc = np.inf
-    best_train_acc = np.inf
+    # best_val_acc = np.inf
+    # best_train_acc = np.inf
+
+    best_val_acc = 0
+    best_train_acc = 0
 
     global_step = 0
     for epoch in range(params.num_epochs):
@@ -136,18 +139,23 @@ def train_and_evaluate(model, train_dataloader, val_dataloader, optimizer, loss_
         val_metrics = evaluate(model, loss_fn, val_dataloader, metrics, params, writer["eval"], global_step)
         global_step+=1
 
-        train_acc = val_metrics['rmse']
+        # train_acc = val_metrics['rmse']
+        train_acc = val_metrics['accuracy']
         # train_acc = train_metrics["huber_loss"]
-        is_best_train = train_acc<=best_train_acc
+        # is_best_train = train_acc<=best_train_acc
+        is_best_train = train_acc>=best_train_acc
 
         if is_best_train:
             best_train_acc = train_acc
             best_json_path_train = os.path.join(model_dir, "metrics_training_.json")
             utils.save_dict_to_json(train_metrics, best_json_path_train)
 
-        val_acc = val_metrics['rmse']
+        val_acc = val_metrics['accuracy']
+        # val_acc = val_metrics['rmse']
         # val_acc = val_metrics['huber_loss']
-        is_best = val_acc<=best_val_acc
+        # is_best = val_acc<=best_val_acc
+        is_best = val_acc>=best_val_acc
+
 
         # Save weights
         utils.save_checkpoint({'epoch': epoch + 1,
@@ -225,7 +233,7 @@ def runTraining(model_dir, data_dir, restore_file):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--data_dir', default='data/HOUSES_SPLIT,data/HOUSES_SATELLITE_SPLIT', help="Directory containing the dataset")
+    parser.add_argument('--data_dir', default='data/HOUSES_SPLIT_SMALL,data/HOUSES_SATELLITE_SPLIT_SMALL', help="Directory containing the dataset")
     parser.add_argument('--model_dir', default='experiments/base_model', help="Directory containing params.json")
     parser.add_argument('--restore_file', default=None,
                         help="Optional, name of the file in --model_dir containing weights to reload before \
