@@ -17,13 +17,13 @@ import numpy as np
 # and http://pytorch.org/tutorials/beginner/data_loading_tutorial.html
 # define a training image loader that specifies transforms on images. See documentation for more details.
 train_transformer = transforms.Compose([
-    transforms.Resize(224),  # resize the image to 64x64 (remove if images are already 64x64)
+    transforms.Resize(64),  # resize the image to 64x64 (remove if images are already 64x64)
     # transforms.RandomVerticalFlip(),  # randomly flip image vertically
     transforms.ToTensor()])  # transform it into a torch tensor
 
 # loader for evaluation, no horizontal flip
 eval_transformer = transforms.Compose([
-    transforms.Resize(224),  # resize the image to 64x64 (remove if images are already 64x64)
+    transforms.Resize(64),  # resize the image to 64x64 (remove if images are already 64x64)
     transforms.ToTensor()])  # transform it into a torch tensor
 
 
@@ -117,8 +117,8 @@ class HOUSEDataset(Dataset):
         # residual = self.log_value[idx] - self.log_value_pred[idx]
 
         # return [image, image2, np.asarray(list(map(float,vec)))], label
-        # return [image, image2, 0], label
-        return image, label
+        return [image, image2, 0], label
+        # return image, label
 
 def fetch_dataloader(types, data_dir, params):
     """

@@ -8,7 +8,7 @@ import numpy as np
 import torch
 from torch.autograd import Variable
 import utils
-import model.net3 as net
+import model.net2 as net
 import model.data_loader2 as data_loader
 
 def evaluate(model, loss_fn, dataloader, metrics, params, writer=None, global_step=0):
@@ -134,8 +134,8 @@ def runEvaluate(model_dir, data_dir, restore_file):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--data_dir', default=['data/HOUSES_SPLIT_SMALL', "data/HOUSES_SATELLITE_SPLIT_SMALL"], help="Directory containing the dataset")
-    parser.add_argument('--model_dir', default='experiments/base_model', help="Directory containing params.json")
+    parser.add_argument('--data_dir', default=['data/HOUSES_SPLIT', "data/HOUSES_SATELLITE_SPLIT"], help="Directory containing the dataset")
+    parser.add_argument('--model_dir', default='experiments/MSE/both_images/', help="Directory containing params.json")
     parser.add_argument('--restore_file', default='best', help="name of the file in --model_dir \
                          containing weights to load")
 
