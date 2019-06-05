@@ -133,12 +133,11 @@ def runEvaluate(model_dir, data_dir, restore_file):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--data_dir', default=['data/HOUSES_SPLIT', "data/HOUSES_SATELLITE_SPLIT"], help="Directory containing the dataset")
+    parser.add_argument('--data_dir', default='data/HOUSES_SPLIT,data/HOUSES_SATELLITE_SPLIT', help="Directory containing the dataset")
     parser.add_argument('--model_dir', default='experiments/MSE/both_images/', help="Directory containing params.json")
     parser.add_argument('--restore_file', default='best', help="name of the file in --model_dir \
                          containing weights to load")
 
     args = parser.parse_args()
-
     runEvaluate(model_dir=args.model_dir, data_dir=args.data_dir, restore_file=args.restore_file)
 
