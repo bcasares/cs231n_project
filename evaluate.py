@@ -91,7 +91,7 @@ def runEvaluate(model_dir, data_dir, restore_file):
 
     # Load the parameters
 
-    json_path = os.path.join(args.model_dir, 'params.json')
+    json_path = os.path.join(model_dir, 'params.json')
     assert os.path.isfile(json_path), "No json configuration file found at {}".format(json_path)
     params = utils.Params(json_path)
 
@@ -103,13 +103,13 @@ def runEvaluate(model_dir, data_dir, restore_file):
     if params.cuda: torch.cuda.manual_seed(231)
 
     # Get the logger
-    utils.set_logger(os.path.join(args.model_dir, 'evaluate.log'))
+    utils.set_logger(os.path.join(model_dir, 'evaluate.log'))
 
     # Create the input data pipeline
     logging.info("Creating the dataset...")
 
     # fetch dataloaders
-    dataloaders = data_loader.fetch_dataloader(['test'], args.data_dir, params)
+    dataloaders = data_loader.fetch_dataloader(['test'], data_dir, params)
     test_dl = dataloaders['test']
 
     logging.info("- done.")
@@ -123,11 +123,11 @@ def runEvaluate(model_dir, data_dir, restore_file):
     logging.info("Starting evaluation")
 
     # Reload weights from the saved file
-    utils.load_checkpoint(os.path.join(args.model_dir, args.restore_file + '.pth.tar'), model)
+    utils.load_checkpoint(os.path.join(model_dir, restore_file + '.pth.tar'), model)
 
     # Evaluate
     test_metrics = evaluate(model, loss_fn, test_dl, metrics, params)
-    save_path = os.path.join(args.model_dir, "metrics_test_{}.json".format(args.restore_file))
+    save_path = os.path.join(model_dir, "metrics_test_{}.json".format(restore_file))
     utils.save_dict_to_json(test_metrics, save_path)
 
 
@@ -139,5 +139,8 @@ if __name__ == '__main__':
                          containing weights to load")
 
     args = parser.parse_args()
-    runEvaluate(model_dir=args.model_dir, data_dir=args.data_dir, restore_file=args.restore_file)
+    data_dir = args.data_dir.split(",")
+    print(data_dir, "list")
+    print(args.model_dir)
+    runEvaluate(model_dir=args.model_dir, data_dir=data_dir, restore_file=args.restore_file)
 
