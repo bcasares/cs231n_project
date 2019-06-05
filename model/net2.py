@@ -60,7 +60,6 @@ class Net(nn.Module):
         out = self.mlp(combined)
 
         scores = out
-
         return scores
 
 def loss_fn(outputs, labels):

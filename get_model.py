@@ -28,52 +28,6 @@ def getModel(model_dir, data_dir, restore_file ="best"):
 
     return model, test_dl
 
-def compute_saliency_maps(X, y, model):
-    """
-    Compute a class saliency map using the model for images X and labels y.
-
-    Input:
-    - X: Input images; Tensor of shape (N, 3, H, W)
-    - y: Labels for X; LongTensor of shape (N,)
-    - model: A pretrained CNN that will be used to compute the saliency map.
-
-    Returns:
-    - saliency: A Tensor of shape (N, H, W) giving the saliency maps for the input
-    images.
-    """
-    # Make sure the model is in "test" mode
-    model.eval()
-
-    # Make input tensor require gradient
-    X.requires_grad_()
-    scores = model(X)
-    scores = scores.gather(1, y.view(-1, 1)).squeeze()
-    scores.backward(torch.ones(scores.size()))
-    saliency = torch.max(torch.abs(X.grad), dim=1)[0]
-    return saliency
-
-def show_saliency_maps(X, y):
-    # Convert X and y from numpy arrays to Torch Tensors
-    X_tensor = X
-    y_tensor = y
-    saliency = compute_saliency_maps(X_tensor, y_tensor, model)
-    saliency = saliency.numpy()
-    N = X.shape[0]
-    for i in range(N):
-        Xi = X[i].detach().numpy()
-        Xi = np.transpose(Xi, (1, 2, 0))
-        plt.subplot(2, N, i + 1)
-        plt.imshow(Xi)
-        plt.axis('off')
-#         plt.title(class_names[y[i]])
-        plt.subplot(2, N, N + i + 1)
-        plt.imshow(saliency[i], cmap=plt.cm.hot)
-        plt.axis('off')
-        plt.gcf().set_size_inches(12, 5)
-    plt.show()
-
-
-
 if __name__ == '__main__':
     pass
     # parser = argparse.ArgumentParser()
