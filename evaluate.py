@@ -8,7 +8,7 @@ import numpy as np
 import torch
 from torch.autograd import Variable
 import utils
-import model.net2 as net
+import model.net3 as net
 import model.data_loader2 as data_loader
 
 def evaluate(model, loss_fn, dataloader, metrics, params, writer=None, global_step=0):
@@ -40,13 +40,15 @@ def evaluate(model, loss_fn, dataloader, metrics, params, writer=None, global_st
 
         # convert to torch Variables
         dtype = torch.float32 # we will be using float throughout this tutorial
-        x, x2, x3 = data_batch
+        # x, x2, x3 = data_batch
         model.train()  # put model to training mode
-        x = x.to(device=device, dtype=dtype)  # move to device, e.g. GPU
-        x2 = x2.to(device=device, dtype=dtype)
-        x3 = x3.to(device=device, dtype=dtype)
+        # x = x.to(device=device, dtype=dtype)  # move to device, e.g. GPU
+        # x2 = x2.to(device=device, dtype=dtype)
+        # x3 = x3.to(device=device, dtype=dtype)
+        # data_batch = (x, x2, x3)
+
         labels_batch = labels_batch.to(device=device, dtype=torch.float)
-        data_batch = (x, x2, x3)
+        data_batch = data_batch.to(device=device, dtype=torch.float)
 
         # compute model output
         output_batch = model(data_batch)
